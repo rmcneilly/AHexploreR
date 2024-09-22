@@ -82,6 +82,16 @@ ui <- fluidPage(
   
   br(),
   
+  tags$head(
+    # Add CSS to ensure proper scaling of plot
+    tags$style(HTML("
+      #basePlot {
+        max-width: 100%;
+        height: auto;
+        overflow: hidden;
+      }
+    "))
+  ),
   
   # BUTTON - NODE SETTINGS --------------------------------------------------
   sidebarLayout(
@@ -235,30 +245,38 @@ ui <- fluidPage(
     # -------------------------------------------------------------------------
     # MAIN PANEL --------------------------------------------------------------
     # -------------------------------------------------------------------------
-    mainPanel(width = 9,
+    mainPanel(
+      width = 9,
+      
+      # TAGS - SIZE FORMATTING
+      tags$body(tags$div(id="ppitest", style="width:0.75in;visible:hidden;padding:0px")),
+      
+      tags$script('$(document).on("shiny:connected", function(e) {
+                              var w = window.innerWidth;
+                              var h = window.innerHeight;
+                              var d =  document.getElementById("ppitest").offsetWidth;
+                              var obj = {width: w, height: h, dpi: d};
+                              Shiny.onInputChange("pltChange", obj);
+                          });
+                          $(window).resize(function(e) {
+                              var w = $(this).width();
+                              var h = $(this).height();
+                              var d =  document.getElementById("ppitest").offsetWidth;
+                              var obj = {width: w, height: h, dpi: d};
+                              Shiny.onInputChange("pltChange", obj);
+                          });'),
               
-              # TAGS - SIZE FORMATTING
-              tags$body(tags$div(id="ppitest", style="width:0.75in;visible:hidden;padding:0px")),
-              
-              tags$script('$(document).on("shiny:connected", function(e) {
-                                    var w = window.innerWidth;
-                                    var h = window.innerHeight;
-                                    var d =  document.getElementById("ppitest").offsetWidth;
-                                    var obj = {width: w, height: h, dpi: d};
-                                    Shiny.onInputChange("pltChange", obj);
-                                });
-                                $(window).resize(function(e) {
-                                    var w = $(this).width();
-                                    var h = $(this).height();
-                                    var d =  document.getElementById("ppitest").offsetWidth;
-                                    var obj = {width: w, height: h, dpi: d};
-                                    Shiny.onInputChange("pltChange", obj);
-                                });'),
               
               
-              # GGIRAPH OUTPUT
+              # GGIRAPH OUTPUT - responsive version
               tabsetPanel(type = "tabs",
-                          tabPanel("AHexploreR", br(), girafeOutput(outputId = "basePlot", width = "auto", height = "auto")),
+                          tabPanel("AHexploreR", 
+                                   br(), 
+                                   div(
+                                     style = "width:100%; height:auto; max-width:100%;",
+                                     girafeOutput(outputId = "basePlot", width = "100%", height = "auto")
+                                   )
+                          ),
                           tabPanel("Nodes", br(), dataTableOutput(outputId = "tableNodes")),
                           tabPanel("Edges", br(), dataTableOutput(outputId = "tableEdges")),
                           tabPanel("About", br(), markdown(
@@ -277,11 +295,12 @@ ui <- fluidPage(
                             **Credit & contact**
                             
                             This [fork](https://github.com/rmcneilly/AHexploreR) of the AHexploreR tool has been deployed by Ryan McNeilly Smith (ryan.mcneillysmith@research.usc.edu.au). Source repo was developed by Annie Visser-Quinnis and maintained by Melissa Bedinger and is available via [GitHub](https://github.com/avisserquinn/AHexploreR)."
-
+                
+              
                           ))
               )
               
-    ) 
+        ) 
     
   )
   
@@ -514,27 +533,51 @@ server <- function(input, output, session) {
                  
                  basePlot <- basePlot + 
                    labs(caption = paste0("Generated ", Sys.Date(), 
-                                         " using the AHexploreR at https://mbedinger.shinyapps.io/AHexploreR",
-                                         "\nWater Resilient Cities - EPSRC EP/N030419/1")) +
+                                         " using the AHexploreR at",
+                                         "\nhttps://ryanmcneillysmith.shinyapps.io/AHexploreR---BioclimaticDesign")) +
                    theme(plot.caption = element_text(colour = myGreys[[7]], size = 12))
                  
-                 output$basePlot <- renderGirafe({ 
+                 
+                 # Dynamically calculate plot dimensions based on window size
+                 plot_dims <- reactive({
+                   width <- if (!is.null(input$pltChange$width) && !is.null(input$pltChange$dpi) && input$pltChange$width > 0) {
+                     round(0.725 * input$pltChange$width / input$pltChange$dpi, 2)  # Round to 2 decimal places
+                   } else {
+                     10  # Fallback to default width of 10 inches
+                   }
                    
-                   girafe(ggobj = basePlot,
-                          
-                          width_svg = input$width,
-                          height_svg = input$height,
-                          
-                          options = list(opts_sizing(rescale = FALSE),
-                                         opts_tooltip(use_fill = TRUE,
-                                                      delay_mouseover = 500),
-                                         opts_hover(css = "stroke:#1B2631;"),
-                                         opts_toolbar(pngname = "AHexploreR"),
-                                         opts_selection(type = "single")
+                   height <- if (!is.null(input$pltChange$height) && !is.null(input$pltChange$dpi) && input$pltChange$height > 0) {
+                     round(0.725 * input$pltChange$height / input$pltChange$dpi, 2)  # Round to 2 decimal places
+                   } else {
+                     7  # Fallback to default height of 7 inches
+                   }
+                   
+                   # Constrain width and height to prevent overflowing (optional, adjust as needed)
+                   width <- min(width, 12)  # Limit maximum width to 12 inches
+                   height <- min(height, 8)  # Limit maximum height to 8 inches
+                   
+
+                   return(list(width = width, height = height))
+                 })
+                 
+                 # Render the girafe plot with the dynamically calculated dimensions
+                 output$basePlot <- renderGirafe({
+                   dims <- plot_dims()  # Get the current plot dimensions
+                   
+
+                   girafe(
+                     ggobj = basePlot,  # This is your ggplot object
+                     width_svg = max(dims$width, 1),   # Ensure width is at least 1 inch
+                     height_svg = max(dims$height, 1), # Ensure height is at least 1 inch
+                     options = list(
+                       opts_sizing(rescale = FALSE),
+                       opts_tooltip(use_fill = TRUE, delay_mouseover = 500),
+                       opts_hover(css = "stroke:#1B2631;"),
+                       opts_toolbar(pngname = "AHexploreR"),
+                       opts_selection(type = "single")
                           ))
                    
                  })
-                 
                  
                  output$tableNodes <- renderDataTable(datatable(
                    dl$dv %>% 
