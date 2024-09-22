@@ -13,6 +13,7 @@ library(shinyMatrix)
 library(DT)
 library(colourpicker)
 library(gdtools)
+library(gfonts)
 
 
 # -------------------------------------------------------------------------
@@ -28,13 +29,13 @@ WRCcols <- c(WRCcols, extraCols)
 myGreys <- readRDS("myGreys.RDS")
 
 dl <- 
-  list(dv = readRDS("USAH_3.0_template_baseline_20230614.RDS")$vInfo %>% 
+  list(dv = readRDS("BCU_1_baseline_20240922.RDS")$vInfo %>% 
          select(level, levelName, Node, definition) %>% 
          mutate(levelName = 
                   factor(levelName, levels = c("Purposes", "Outcomes", "Tasks", 
                                                "Processes", "Resources"))) %>%
          drop_na(definition),
-       de = readRDS("USAH_3.0_template_baseline_20230614.RDS")$edgelist)
+       de = readRDS("BCU_1_baseline_20240922.RDS")$edgelist)
 
 tmpKey <-
   dl$dv %>%
@@ -91,7 +92,7 @@ ui <- fluidPage(
     # -------------------------------------------------------------------------
     sidebarPanel(width = 3,   
                  
-                 tags$h2("AHexploreR v3.0"),
+                 tags$h2("AHexploreR Bioclimatic Urbanism"),
                  
                  fluidRow(
                    column(width = 2, dropdownButton(
@@ -226,7 +227,7 @@ ui <- fluidPage(
                                                  min = 0, max = 1, value = 0.1, step = 0.01, ticks = FALSE))
                  ),
                  
-                 markdown("###### *Developed by [Annie Visser-Quinn](annievisserquinn@gmail.com) on the Water Resilient Cities project funded by UKRI EPSRC, grant #EP/N030419/1. Maintained by [Melissa Bedinger](dr.m.bedinger@gmail.com). Source code available via [GitHub](https://github.com/avisserquinn/AHexploreR).*")
+                 markdown("###### *This [fork](https://github.com/rmcneilly/AHexploreR) of the AHexploreR tool has been deployed by Ryan McNeilly Smith (ryan.mcneillysmith@research.usc.edu.au). Source repo was developed by Annie Visser-Quinnis and maintained by Melissa Bedinger and is available via [GitHub](https://github.com/avisserquinn/AHexploreR)*")
                  
     ),
     
@@ -263,51 +264,19 @@ ui <- fluidPage(
                           tabPanel("About", br(), markdown(
                             "**Background**
                             
-                            The [Abstraction Hierarchy](https://doi.org/10.1201/9781315572543) is a method from the discipline of human factors. Originally developed as a part of the Cognitive Work Analysis framework to improve the design of safety-critical work systems (e.g., a nuclear power plant), this application of the abstraction hierarchy has been scaled up to the entirety of the urban system. The Urban Systems Abstraction Hierarchy (USAH) integrates the natural, technical, and social infrastructure of cities into a single systems framework, and shows their functional interdependencies.
-                            
-                            The USAH is a network consisting of five levels of increasing abstraction. At the bottom of the hierarchy (Level 5) are the Resources e.g., Hospitals. These object types are linked to Processes (Level 4) they support e.g., Provide life-threatening healthcare services, then to Tasks (Level 3) they achieve e.g., Public health, then to Outcomes (Level 2) e.g., Effective safeguards to human health and life, and finally to Purposes (Level 1) e.g., Social opportunity and care. These system parts are nodes, which are linked between levels through their functionality, connecting the physical to the abstract. Moving upward through the levels the nodes are connected by asking ‘why the node exists’; moving downward levels the nodes are connected by asking ‘how a node is afforded’. These links represent the ‘means’ that a system can use to achieve defined ‘ends’, explicitly connecting the physical and abstract.
-                            
-                            The USAH in the AHexploreR is for a generic UK city. This 'template' version can be modified to represent a specific location (e.g. Edinburgh or Manchester) and explore the interconnected impacts of a specific scenario (e.g. 'everyday' baseline conditions or a 1:1000-year flood). For such modifications, additional open software packages [OSMtidy](https://github.com/avisserquinn/OSMtidy) and [AHgen](https://github.com/avisserquinn/AHgen) are used (see Related Research for more detail and examples).
-                            
+                            Content to come.
 
                             **Related Research**
-                            - Bedinger, M., McClymont, K., Beevers, L., Visser-Quinn, A., & Aitken, G. (2023). [Five cities: Application of the Urban Systems Abstraction Hierarchy to characterize resilience across locations](https://doi.org/10.1016/j.cities.2023.104355). *Cities*, 139, 104335.
-                            - McClymont, K., Bedinger, M., Beevers, L., & Walker, G. H. (2023). [Applying the Urban Systems Abstraction Hierarchy as a Tool for Flood Resilience](https://doi.org/10.1029/2023EF003594). *Earth’s Future*, 11(5), e2023EF003594.
-                            - Beevers, L., Bedinger, M., McClymont, K., Morrison, D., Aitken, G., & Visser-Quinn, A. (2022). [Modelling systemic COVID-19 impacts in cities](https://doi.org/10.1038/s42949-022-00060-2). *npj Urban Sustainability*, 2, 17.
-                            - Beevers, L., McClymont, K., & Bedinger, M. (2022). [A hazard-agnostic model for unpacking systemic impacts in urban systems](https://doi.org/10.1080/10286608.2022.2083112). *Civil Engineering and Environmental Systems*, 39(3), p. 224-241.
-                            - McClymont, K., Bedinger, M., Beevers, L., & Walker, G. (2022). [Understanding urban resilience with the Urban Systems Abstraction Hierarchy](https://doi.org/10.1016/j.scs.2022.103729). *Sustainable Cities and Society*, 80, 103729.
-                            - McClymont, K., Bedinger, M., Beevers, L., Walker, G., Morrison, D. (2021). [‘Chapter 2.2 – Analyzing city-scale resilience using a novel systems approach’](https://doi.org/10.1016/B978-0-12-819047-0.00011-1), in Santos, P.P., Chmutina, & K. Von Meding, J., and Raju, E., (eds.) *Understanding Disaster Risk*. Elsevier, p. 179-201.
-                            - Bedinger, M., Beevers, L., Walker, G. H., Visser-Quinn, A., & McClymont, K. (2020). [Urban systems: Mapping interdependencies and outcomes to support systems thinking](http://dx.doi.org/10.1029/2019EF001389). *Earth’s Future*, 8(3), e2019EF001389.
-                            - Beevers, L., Walker, G., & Strathie, A. (2016). [A systems approach to flood vulnerability](https://doi.org/10.1080/10286608.2016.1202931). *Civil Engineering and Environmental Systems*, 33(3), p. 199-213.
+                            - Content to come.
 
                             
                             **Further Reading**
-                            - Adams, J., Greenwood, D., Thomashow, M., & Russ, A. (2016). ['Sense of place', The Nature of Cities](https://www.thenatureofcities.com/2016/05/26/sense-of-place/). Last Accessed 09/03/21.
-                            - Allwinkle, S. & Cruickshank, P. (2011). [Creating Smart-er Cities: An Overview](https://doi.org/10.1080/10630732.2011.601103). *Journal of Urban Technology*, 18:2, 1-18.
-                            - Arup (2015). [City Resilience Framework](https://www.rockefellerfoundation.org/report/city-resilience-framework/).
-                            - Council of Europe (2005). [Council of Europe Framework Convention on the Value of Cultural Heritage for Society](https://www.coe.int/en/web/conventions/full-list/-/conventions/rms/0900001680083746). Last Accessed 09/03/21.
-                            - Dunn, N. & Coulton, C. (2016). [Future of health and healthcare provision in cities - Future of Cities: Working Paper](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/545772/gs-16-15-future-of-cities-health-healthcare-provision.pdf). Last Accessed 04/05/2021.
-                            - EEA (2015). [Urban sustainability issues - What is a resource-efficient city?](https://www.eea.europa.eu/publications/resource-efficient-cities/file). Last Accessed 04/05/2021.
-                            - European Commission (2020). [The Future of Cities: Cities as Innovation Hubs.](https://urban.jrc.ec.europa.eu/thefutureofcities/cities-as-innovation-hubs#the-chapter). Last Accessed 09/03/21.
-                            - Foster, S. & Iaione, C. (2017). [Ostrom in the City: Design Principles for the Urban Commons - The Nature of Cities](https://www.thenatureofcities.com/2017/08/20/ostrom-city-design-principles-urban-commons/). (Last Accessed 04/05/2021).
-                            - Knapp, C. (2008). [Making Multicultural Places (pps.org)](https://www.pps.org/article/multicultural-places). Last Accessed 04/05/2021.
-                            - Knox, P.L. (1996). Globalization and the world city hypothesis. *Scottish Geographical Magazine*, 112(2), pp. 124-126.
-                            - LeGrand, L. & Malany, P.E. (2012). [A reflection on the Importance of Settlements in Humanitarian Shelter Assistance](https://www.alnap.org/help-library/a-reflection-on-the-importance-of-settlements-in-humanitarian-shelter-assistance).
-                            - Longley, R. (2020). [Equity vs. Equality: What is the difference?](https://www.thoughtco.com/equity-vs-equality-4767021).
-                            - Lonsdale, J., Schweppenstedde, D., Van Stolk, C., Guerin, B., & Hafner, M. (2015). [One Place, One Budget? Approaches to pooling resources for public service transformation](https://www.rand.org/pubs/research_reports/RR1017.html). Last Accessed 04/05/2021.
-                            - Massey, D. (2004). Geographies of responsibility. *Geografiska Annaler: Series B, Human Geography*, 86(1), pp. 5-18.
-                            - Roberts, J. (2018). Urban Safety Project: Urban Safety and Security in Myanmar. The Asia Foundation.
-                            - Russell, H., Smith, A., & Leverton, P. (2011). Sustaining cultural identity and a sense of place - new wine in old bottles or old wine in new bottles? The College of Estate Management.
-                            - UNDRR (2020) [Hazard definition & classification review: Technical report](https://www.undrr.org/publication/hazard-definition-and-classification-review).
-                            - UNHCR (2020). [Settlement in urban areas](https://emergency.unhcr.org/entry/36413/settlement-in-urban-areas). Last Accessed 09/03/21.
-                            - UNSDG (2019). [Leaving no-one behind: A UNSDG Operational Guide for UN Country Teams (Interim Draft)](https://unsdg.un.org/sites/default/files/Interim-Draft-Operational-Guide-on-LNOB-for-UNCTs.pdf). Last Accessed 04/05/2021.
-                            - World Bank (2017). [Opportunities and Challenges of Urbanization: Planning for an Unprecedented Future](https://www.worldbank.org/en/events/2017/09/25/opportunities-and-challenges-of-urbanization). Last Accessed 03/05/2021.
-                            - World Bank (2021). [Inclusive Cities](https://www.worldbank.org/en/topic/inclusive-cities). Last Accessed 04/05/2021.
+                            - Content to come.
                             
                   
                             **Credit & contact**
                             
-                            Developed by [Annie Visser-Quinn](annievisserquinn@gmail.com) on the Water Resilient Cities project funded by UKRI EPSRC, grant #EP/N030419/1. Maintained by [Melissa Bedinger](dr.m.bedinger@gmail.com). Source code available via [GitHub](https://github.com/avisserquinn/AHexploreR)."
+                            This [fork](https://github.com/rmcneilly/AHexploreR) of the AHexploreR tool has been deployed by Ryan McNeilly Smith (ryan.mcneillysmith@research.usc.edu.au). Source repo was developed by Annie Visser-Quinnis and maintained by Melissa Bedinger and is available via [GitHub](https://github.com/avisserquinn/AHexploreR)."
 
                           ))
               )
